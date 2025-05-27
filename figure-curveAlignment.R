@@ -9,69 +9,13 @@
 ### GitHub packages, write "user/repo@commit"
 ### e.g. "tdhock/animint@f877163cd181f390de3ef9a38bb8bdd0396d08a4" and
 ### we use install_github to get it, if necessary.
-works_with_R <- function(Rvers,...){
-  local.lib <- file.path(getwd(), "library")
-  dir.create(local.lib, showWarnings=FALSE, recursive=TRUE)
-  .libPaths(c(local.lib, .libPaths()))
-  pkg_ok_have <- function(pkg,ok,have){
-    stopifnot(is.character(ok))
-    if(!as.character(have) %in% ok){
-      warning("works with ",pkg," version ",
-              paste(ok,collapse=" or "),
-              ", have ",have)
-    }
-  }
-  pkg_ok_have("R",Rvers,getRversion())
-  pkg.vers <- list(...)
-  for(pkg.i in seq_along(pkg.vers)){
-    vers <- pkg.vers[[pkg.i]]
-    pkg <- if(is.null(names(pkg.vers))){
-      ""
-    }else{
-      names(pkg.vers)[[pkg.i]]
-    }
-    if(pkg == ""){# Then it is from GitHub.
-      ## suppressWarnings is quieter than quiet.
-      if(!suppressWarnings(require(requireGitHub))){
-        ## If requireGitHub is not available, then install it using
-        ## devtools.
-        if(!suppressWarnings(require(devtools))){
-          install.packages("devtools")
-          require(devtools)
-        }
-        install_github("tdhock/requireGitHub")
-        require(requireGitHub)
-      }
-      print(search())
-      requireGitHub(vers)
-    }else{# it is from a CRAN-like repos.
-      if(!suppressWarnings(require(pkg, character.only=TRUE))){
-        install.packages(pkg)
-      }
-      pkg_ok_have(pkg, vers, packageVersion(pkg))
-      library(pkg, character.only=TRUE)
-    }
-  }
-}
-options(repos=c(
-  "http://www.bioconductor.org/packages/release/bioc",
-  ##"http://r-forge.r-project.org",
-  "http://cloud.r-project.org",
-  "http://cran.r-project.org"))
-works_with_R(
-  "4.1.0",
-  data.table="1.14.0",
-  future="1.21.0",
-  future.apply="1.7.0",
-  RJSONIO="1.3.1.4",
-  R.utils="2.10.1",
-  "tdhock/penaltyLearning@4e14a0b0e022d919884277d68b8e47bd158459f3",
-  jointseg="1.0.2",
-  gridExtra="2.3",
-  neuroblastoma="1.0",
-  tikzDevice="0.12.3.1",
-  microbenchmark="1.4.7",
-  animint2="1.0")
+
+library(animint2)
+library(data.table)
+library(RJSONIO)
+library(jointseg)
+library(neuroblastoma)
+
 
 curveAlignment <- readRDS("curveAlignment.rds")
 AUC.dt.list <- list()
@@ -244,12 +188,14 @@ err.dt.show <- err.dt.tall[
 area.show <- err.dt.show[error.type=="min(fp,fn)"]
 AUM.text <- area.show[, .SD[value>0][1], by=offset][AUC.dt, .(
   offset, sample, min.thresh, AUM), on="offset"]
-animint(
+
+viz <- list(
   title="Changepoint detection ROC curve alignment problem",
   ##first=list(offset=0.5),
-  out.dir="figure-curveAlignment",
+  source = "https://github.com/suhaani-agarwal/max-generalized-auc/blob/master/figure-curveAlignment.R",
   duration=list(offset=250),
   time=list(variable="offset", ms=250),
+
   profiles=ggplot()+
     ylab("Number of aligned DNA sequence reads (coverage)")+
     ggtitle(
@@ -331,6 +277,7 @@ animint(
     ggtitle(
       "AUC, select offset")+
     theme_bw()+
+    theme_animint(width=400, height = 600)+
     theme(panel.margin=grid::unit(0, "lines"))+
     facet_grid(variable ~ ., scales="free")+
     geom_blank(aes(
@@ -349,6 +296,7 @@ animint(
     ggtitle(
       "Error curves, select threshold")+
     theme_bw()+
+    theme_animint(height = 600)+
     theme(panel.margin=grid::unit(0, "lines"))+
     facet_grid(sample ~ ., scales="free")+
     scale_color_manual(values=c(
@@ -370,6 +318,7 @@ animint(
       showSelected=c("offset", "Errors"),
       color="grey50",
       alpha=0.5,
+      fill = "grey50",
       data=min.tallrects)+
     geom_text(aes(
       min.thresh, labels*0.9, key=1, label=paste0(
@@ -449,3 +398,4 @@ animint(
       data=data.table(slope=1, intercept=0))
 )
 
+animint2pages(viz, "Changepoint detection ROC curve alignment problem")
