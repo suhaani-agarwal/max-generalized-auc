@@ -278,7 +278,7 @@ viz <- list(
       "AUC, select offset")+
     theme_bw()+
     theme_animint(width=400, height = 600)+
-    theme(panel.margin=grid::unit(0, "lines"))+
+    theme(panel.margin=grid::unit(1, "lines"))+
     facet_grid(variable ~ ., scales="free")+
     geom_blank(aes(
       x, y),
@@ -297,7 +297,7 @@ viz <- list(
       "Error curves, select threshold")+
     theme_bw()+
     theme_animint(height = 600)+
-    theme(panel.margin=grid::unit(0, "lines"))+
+    theme(panel.margin=grid::unit(1, "lines"))+
     facet_grid(sample ~ ., scales="free")+
     scale_color_manual(values=c(
       fp="red",
